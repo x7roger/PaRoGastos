@@ -67,11 +67,21 @@ export const loadState = (): Partial<AppState> => {
   try {
     const serialized = localStorage.getItem(STORAGE_KEY);
     if (serialized) {
-      return JSON.parse(serialized);
+      const parsed = JSON.parse(serialized);
+      if (Array.isArray(parsed.users)) {
+        parsed.users = parsed.users.map(u => ({
+          ...u,
+          name: u.name === 'João' ? 'Rogério' : u.name === 'Maria' ? 'Patrícia' : u.name
+        }));
+        // Persist updated names back to localStorage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      }
+      return parsed;
     }
   } catch (e) {
     console.error('Error loading state from local storage', e);
   }
+
   
   // Return initial data if nothing in storage
   const state = {
