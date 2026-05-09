@@ -1,0 +1,115 @@
+// ============================================================
+// Firestore Security Rules – PaRo Gastos
+// Versão: 1.0.0  |  Ambiente: production
+//
+// Aplique estas regras em:
+//   Firebase Console → Firestore Database → Regras
+// ou via Firebase CLI:
+//   firebase deploy --only firestore:rules
+// ============================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------
+    // BLOQUEIO GLOBAL – Nenhum acesso público por padrão.
+    // Toda rota não coberta pelas regras abaixo será negada.
+    // ----------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ----------------------------------------------------------
+    // COLEÇÃO: users/{userId}
+    // Cada usuário pode ler e atualizar apenas seu próprio perfil.
+    // Criação é permitida (registro), deleção é negada para
+    // preservar integridade referencial.
+    // ----------------------------------------------------------
+    match /users/{userId} {
+      allow read, update: if isAuthenticated() && isOwner(userId);
+      allow create:        if isAuthenticated() && request.auth.uid == userId;
+      allow delete:        if false;
+    }
+
+    // ----------------------------------------------------------
+    // COLEÇÃO: expenses/{expenseId}
+    // Regra central: o campo `userId` do documento DEVE bater
+    // com o UID do usuário autenticado.
+    //
+    //   • list/get  → somente despesas do próprio usuário
+    //   • create    → obrigatório incluir userId == auth.uid
+    //   • update    → não permite alterar o campo userId
+    //   • delete    → somente o dono pode excluir
+    // ----------------------------------------------------------
+    match /expenses/{expenseId} {
+      allow get:    if isAuthenticated() && isDocumentOwner();
+      allow list:   if isAuthenticated() && isQueryOwnedByUser();
+      allow create: if isAuthenticated() && isValidExpenseCreate();
+      allow update: if isAuthenticated() && isDocumentOwner() && isValidExpenseUpdate();
+      allow delete: if isAuthenticated() && isDocumentOwner();
+    }
+
+    // ----------------------------------------------------------
+    // COLEÇÃO: categories/{categoryId}
+    // Categorias são globais (leitura pública autenticada).
+    // Apenas admins podem escrever — implemente via Custom Claims
+    // ou remova essa coleção se as categorias forem hardcoded.
+    // ----------------------------------------------------------
+    match /categories/{categoryId} {
+      allow read:  if isAuthenticated();
+      allow write: if isAuthenticated() && isAdmin();
+    }
+
+    // ==========================================================
+    // FUNÇÕES AUXILIARES
+    // ==========================================================
+
+    /// Verifica se o usuário está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    /// O UID autenticado bate com o parâmetro {userId} do path
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /// O campo `userId` do documento existente pertence ao auth atual
+    function isDocumentOwner() {
+      return resource.data.userId == request.auth.uid;
+    }
+
+    /// Garante que queries na coleção filtrem por userId == auth.uid
+    /// (impede que um usuário liste despesas de outros via query direta)
+    function isQueryOwnedByUser() {
+      return request.query.filters.hasAny([
+        ["userId", "==", request.auth.uid]
+      ]);
+    }
+
+    /// Validações para CREATE de despesas:
+    ///   1. userId no payload == UID autenticado
+    ///   2. Campos obrigatórios presentes
+    ///   3. amount deve ser um número positivo
+    function isValidExpenseCreate() {
+      let data = request.resource.data;
+      return data.userId == request.auth.uid
+          && data.keys().hasAll(['userId', 'amount', 'categoryId', 'date', 'createdAt'])
+          && data.amount is number
+          && data.amount > 0;
+    }
+
+    /// Validações para UPDATE de despesas:
+    ///   - Impede a alteração do campo `userId` (imutável após criação)
+    function isValidExpenseUpdate() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId']);
+    }
+
+    /// Verifica se o usuário tem o Custom Claim `admin: true`
+    function isAdmin() {
+      return request.auth.token.admin == true;
+    }
+  }
+}
