@@ -22,6 +22,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AppState>(() => {
+    // Senha padrão para os usuários fixos: 123456
     const loaded = loadState();
     const defaultUsers: User[] = [
       { id: 'usr_rogerio', name: 'Rogério', color: '#4F46E5', email: 'roger@roger.com' } as User & { email: string },
