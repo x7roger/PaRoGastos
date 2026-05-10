@@ -19,6 +19,7 @@ export const Login = () => {
     setError('');
 
     try {
+      console.log("Tentando login com:", selectedUser.email, password);
       await login(selectedUser.email, password);
     } catch (err: any) {
       console.error(err);
