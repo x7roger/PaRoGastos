@@ -28,8 +28,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       { id: 'usr_patricia', name: 'Patrícia', color: '#EC4899', email: 'paty@paty.com' } as User & { email: string }
     ];
 
+    const initialUsers = loaded.users && loaded.users.length > 0 ? loaded.users : defaultUsers;
+    
+    // Ensure emails are present for the fixed users (crucial for Login filtering)
+    const usersWithEmails = initialUsers.map(u => {
+      if (u.name === 'Rogério' && !u.email) return { ...u, email: 'roger@roger.com' };
+      if (u.name === 'Patrícia' && !u.email) return { ...u, email: 'paty@paty.com' };
+      return u;
+    });
+
     return {
-      users: loaded.users && loaded.users.length > 0 ? loaded.users : defaultUsers,
+      users: usersWithEmails,
       categories: loaded.categories || [],
       expenses: loaded.expenses || [],
       currentUser: null,

@@ -3,8 +3,8 @@ import { AppState, Category, Expense, User } from '../types';
 const STORAGE_KEY = 'paro_gastos_data';
 
 const initialUsers: User[] = [
-  { id: 'u1', name: 'Rogério', color: '#10b981' }, // emerald-500
-  { id: 'u2', name: 'Patrícia', color: '#8b5cf6' }, // violet-500
+  { id: 'usr_rogerio', name: 'Rogério', color: '#4F46E5', email: 'roger@roger.com' },
+  { id: 'usr_patricia', name: 'Patrícia', color: '#EC4899', email: 'paty@paty.com' },
 ];
 
 const initialCategories: Category[] = [
