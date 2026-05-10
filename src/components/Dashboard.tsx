@@ -77,7 +77,6 @@ export const Dashboard = () => {
   };
 
   return (
-  return (
     <div className="flex flex-col bg-slate-50 min-h-full pb-24">
       {/* Header - Compact 56px */}
       <header className="bg-white px-4 h-14 flex items-center justify-between shadow-sm border-b border-slate-200 sticky top-0 z-30">
@@ -161,7 +160,10 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Bar Chart - Priority, max 250px */}
+        {/* Charts Section */}
+        {chartData.length > 0 ? (
+          <>
+            {/* Bar Chart - Priority, max 250px */}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
           <h3 className="text-xs font-bold text-slate-800 mb-4 font-sans">
             Gastos por {viewBy === 'category' ? 'Categoria' : 'Subcategoria'}
@@ -242,15 +244,16 @@ export const Dashboard = () => {
             ))}
           </div>
         </div>
-      </div>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400">
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center py-12 text-center text-slate-400">
           <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
             <span className="text-3xl">👋</span>
           </div>
           <p className="font-medium">Nenhum gasto registrado em {formattedMonth}</p>
         </div>
       )}
+    </div>
     </div>
   );
 };
