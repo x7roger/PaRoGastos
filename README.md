@@ -71,3 +71,5 @@ src/
 - A aplicação está preparada para ser empacotada com Vite, mas pode ser facilmente hospedada em qualquer servidor HTTP.
 
 ```
+
+
