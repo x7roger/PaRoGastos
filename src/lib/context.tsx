@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AppState, Category, Expense, User } from '../types';
 import { loadState, saveState } from './storage';
+import { auth } from './firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 type AppContextType = AppState & {
-  login: (user: User) => void;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   setTab: (tab: AppState['currentTab']) => void;
   addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void;
   deleteExpense: (id: string) => void;
@@ -21,8 +22,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AppState>(() => {
     const loaded = loadState();
+    const defaultUsers: User[] = [
+      { id: 'usr_rogerio', name: 'Rogério', color: '#4F46E5', email: 'roger@roger.com' } as User & { email: string },
+      { id: 'usr_patricia', name: 'Patrícia', color: '#EC4899', email: 'paty@paty.com' } as User & { email: string }
+    ];
+
     return {
-      users: loaded.users || [],
+      users: loaded.users && loaded.users.length > 0 ? loaded.users : defaultUsers,
       categories: loaded.categories || [],
       expenses: loaded.expenses || [],
       currentUser: null,
@@ -30,7 +36,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   });
   
+  const [loading, setLoading] = useState(true);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const user = state.users.find(u => (u as any).email === firebaseUser.email);
+        if (user) {
+          setState(s => ({ ...s, currentUser: user }));
+        }
+      } else {
+        setState(s => ({ ...s, currentUser: null }));
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [state.users]);
 
   useEffect(() => {
     saveState({
@@ -40,8 +63,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [state.users, state.categories, state.expenses]);
 
-  const login = (user: User) => setState(s => ({ ...s, currentUser: user }));
-  const logout = () => setState(s => ({ ...s, currentUser: null, currentTab: 'dashboard' }));
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+    setState(s => ({ ...s, currentTab: 'dashboard' }));
+  };
+
   const setTab = (tab: AppState['currentTab']) => setState(s => ({ ...s, currentTab: tab }));
 
   const addExpense = (expense: Omit<Expense, 'id' | 'createdAt'>) => {
@@ -90,7 +120,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       addUser, deleteUser,
       isAddExpenseOpen, setIsAddExpenseOpen
     }}>
-      {children}
+      {!loading && children}
     </AppContext.Provider>
   );
 };
