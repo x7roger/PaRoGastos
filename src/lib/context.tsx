@@ -1,13 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AppState, Category, Expense, User } from '../types';
 import { loadState, saveState } from './storage';
+import { auth, db } from './firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 
 type AppContextType = AppState & {
-  login: (user: User) => void;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   setTab: (tab: AppState['currentTab']) => void;
-  addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void;
-  deleteExpense: (id: string) => void;
+  addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
   addCategory: (category: Omit<Category, 'id'>) => void;
   deleteCategory: (id: string) => void;
   addUser: (user: Omit<User, 'id'>) => void;
@@ -21,40 +24,103 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AppState>(() => {
     const loaded = loadState();
+    const defaultUsers: User[] = [
+      { id: 'usr_rogerio', name: 'Rogério', color: '#4F46E5', email: 'roger@roger.com' } as User & { email: string },
+      { id: 'usr_patricia', name: 'Patrícia', color: '#EC4899', email: 'paty@paty.com' } as User & { email: string }
+    ];
+
+    const initialUsers = loaded.users && loaded.users.length > 0 ? loaded.users : defaultUsers;
+    
+    const usersWithEmails = initialUsers.map(u => {
+      if (u.name === 'Rogério' && !u.email) return { ...u, email: 'roger@roger.com' };
+      if (u.name === 'Patrícia' && !u.email) return { ...u, email: 'paty@paty.com' };
+      return u;
+    });
+
     return {
-      users: loaded.users || [],
+      users: usersWithEmails,
       categories: loaded.categories || [],
-      expenses: loaded.expenses || [],
+      expenses: [],
       currentUser: null,
       currentTab: 'dashboard',
     };
   });
   
+  const [loading, setLoading] = useState(true);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const user = state.users.find(u => (u as any).email === firebaseUser.email);
+        if (user) {
+          setState(s => ({ ...s, currentUser: user }));
+        }
+      } else {
+        setState(s => ({ ...s, currentUser: null }));
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+    // Intentionally only on mount — users are static
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Real-time listener for all expenses from Firestore
+  useEffect(() => {
+    const q = query(collection(db, "gastos"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const expenses = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Expense[];
+      setState(s => ({ ...s, expenses }));
+    }, (error) => {
+      console.error("Error fetching expenses from Firestore:", error);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Save only users and categories to localStorage (expenses are in Firestore)
   useEffect(() => {
     saveState({
       users: state.users,
       categories: state.categories,
-      expenses: state.expenses
     });
-  }, [state.users, state.categories, state.expenses]);
+  }, [state.users, state.categories]);
 
-  const login = (user: User) => setState(s => ({ ...s, currentUser: user }));
-  const logout = () => setState(s => ({ ...s, currentUser: null, currentTab: 'dashboard' }));
-  const setTab = (tab: AppState['currentTab']) => setState(s => ({ ...s, currentTab: tab }));
-
-  const addExpense = (expense: Omit<Expense, 'id' | 'createdAt'>) => {
-    const newExpense: Expense = {
-      ...expense,
-      id: `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString()
-    };
-    setState(s => ({ ...s, expenses: [newExpense, ...s.expenses] }));
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const deleteExpense = (id: string) => {
-    setState(s => ({ ...s, expenses: s.expenses.filter(e => e.id !== id) }));
+  const logout = async () => {
+    await signOut(auth);
+    setState(s => ({ ...s, currentTab: 'dashboard' }));
+  };
+
+  const setTab = (tab: AppState['currentTab']) => setState(s => ({ ...s, currentTab: tab }));
+
+  const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
+    try {
+      await addDoc(collection(db, "gastos"), {
+        ...expense,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("ERRO DETALHADO:", error.code, error.message, error);
+      alert("Erro ao salvar gasto. Tente novamente.");
+    }
+  };
+
+  const deleteExpense = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "gastos", id));
+    } catch (error) {
+      console.error("Error deleting expense from Firestore:", error);
+      alert("Erro ao excluir gasto. Tente novamente.");
+    }
   };
 
   const addCategory = (category: Omit<Category, 'id'>) => {
@@ -90,7 +156,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       addUser, deleteUser,
       isAddExpenseOpen, setIsAddExpenseOpen
     }}>
-      {children}
+      {!loading && children}
     </AppContext.Provider>
   );
 };

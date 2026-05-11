@@ -34,6 +34,19 @@ service cloud.firestore {
     }
 
     // ----------------------------------------------------------
+    // COLEÇÃO: gastos/{gastoId}
+    // Todos os usuários autenticados podem ver TODOS os gastos
+    // de TODOS os usuários em tempo real (sem filtro por uid).
+    // Qualquer usuário autenticado pode criar ou excluir.
+    // ----------------------------------------------------------
+    match /gastos/{gastoId} {
+      allow read:   if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow delete: if isAuthenticated();
+      allow update: if isAuthenticated();
+    }
+
+    // ----------------------------------------------------------
     // COLEÇÃO: expenses/{expenseId}
     // Regra central: o campo `userId` do documento DEVE bater
     // com o UID do usuário autenticado.
