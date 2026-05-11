@@ -22,7 +22,7 @@ export const Login = () => {
       console.log("Tentando login com:", selectedUser.email, password);
       await login(selectedUser.email, password);
     } catch (err: any) {
-      console.error(err);
+      console.error("Firebase Auth Error Full Object:", err);
       setError('Senha incorreta. Tente novamente.');
     } finally {
       setIsLoading(false);
