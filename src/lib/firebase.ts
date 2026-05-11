@@ -30,12 +30,12 @@ import {
 // Configuração lida das variáveis de ambiente expostas pelo Vite
 // ---------------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyBP7LvSBiVSwcRJqPGZR2vxO1G1LM-7WgE",
-  authDomain: "ai-studio-applet-webapp-6182d.firebaseapp.com",
-  projectId: "ai-studio-applet-webapp-6182d",
-  storageBucket: "ai-studio-applet-webapp-6182d.firebasestorage.app",
-  messagingSenderId: "328648907222",
-  appId: "1:328648907222:web:302e7d3c942bee6e2f6c77"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // ---------------------------------------------------------------------------
