@@ -14,7 +14,7 @@ import { Plus } from "lucide-react";
 import { motion } from "motion/react";
 
 const AppContent = () => {
-  const { currentUser, currentTab, isAddExpenseOpen } = useAppContext();
+  const { currentUser, currentTab, isAddExpenseOpen, setIsAddExpenseOpen } = useAppContext();
 
   if (!currentUser) {
     return <Login />;

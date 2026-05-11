@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts';
-import { ChevronLeft, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../lib/context';
 import { formatCurrency } from '../lib/utils';
 import { User } from '../types';
@@ -94,12 +94,6 @@ export const Dashboard = () => {
           {formattedMonth}
         </div>
 
-        <button 
-          onClick={() => setTab('settings')}
-          className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
-        >
-          <SettingsIcon size={20} />
-        </button>
       </header>
 
       {/* Filters & Month Selector - Single line */}
