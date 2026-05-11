@@ -76,7 +76,7 @@ const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) 
 export const auth: Auth = getAuth(app);
 
 /** Instância do Firestore Database */
-export const db: Firestore = getFirestore(app);
+export const db: Firestore = getFirestore(app, "ai-studio-750eb775-b709-4e1a-b110-ea79a59deddf");
 
 /** Instância raiz do Firebase App (uso avançado) */
 export { app };
