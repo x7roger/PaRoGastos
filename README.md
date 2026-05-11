@@ -11,22 +11,34 @@ Esta aplicação web foi desenvolvida para facilitar o controle e análise de de
 
 ## Tecnologias e dependências
 - **Frontend**: React 19 (com suporte a JSX moderno), TypeScript 5.8, Vite 6, Tailwind CSS 4, Recharts (para gráficos), Lucide‑React (ícones), Motion, clsx, tailwind‑merge.
-- **Backend (opcional)**: Express 4, dotenv.
+- **Backend**: Firebase Authentication + Firestore Database (Google Cloud).
 - **IA**: @google/genai – interage com a API Gemini.
 - **Outros**: date-fns, motion, lucide‑react.
+
+## Funcionalidades
+- **Autenticação Firebase**: Login com email e senha utilizando o Firebase Authentication.
+- **Gastos em tempo real**: Os gastos são armazenados e sincronizados em tempo real via Firestore (coleção `gastos`).
+- **Dashboard com gráficos**: Visualização mensal com gráficos de barras e rosca (Recharts), KPIs por usuário e por categoria.
+- **Histórico completo**: Navegação por todos os gastos registrados com opção de excluir.
+- **Gerenciamento de categorias**: Criação e exclusão de categorias personalizadas.
+- **Suporte a múltiplos usuários**: Dois perfis fixos (Rogério e Patrícia) com cores distintas.
 
 ## Variáveis de ambiente
 As variáveis são definidas em um arquivo de ambiente (*`.env`*). Um modelo de exemplo está em `.env.example`:
 
 ```dotenv
+# Firebase Configuration
+VITE_FIREBASE_API_KEY="sua_api_key"
+VITE_FIREBASE_AUTH_DOMAIN="seu_projeto.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID="seu_projeto"
+VITE_FIREBASE_STORAGE_BUCKET="seu_projeto.appspot.com"
+VITE_FIREBASE_MESSAGING_SENDER_ID="seu_sender_id"
+VITE_FIREBASE_APP_ID="seu_app_id"
+
 # GEMINI_API_KEY: Obrigatória para chamadas à API Gemini.
-# AI Studio injeta automaticamente essa chave em tempo de execução.
-# Usuários configuram via Painel de Segredos no UI.
 GEMINI_API_KEY="MY_GEMINI_API_KEY"
 
 # APP_URL: URL onde o applet está hospedado.
-# AI Studio injeta automaticamente o URL do serviço Cloud Run em tempo de execução.
-# Usado em links autossimples, callbacks OAuth e pontos finais de API.
 APP_URL="MY_APP_URL"
 ```
 
@@ -55,22 +67,27 @@ npm run lint
 ```
 src/
 ├─ components/         # Componentes React (Dashboard, Login, AddExpense, History, Navigation, Settings)
-├─ lib/                # Context, utilidades e armazenamento local
+├─ lib/                # Context, Firebase, storage e utilitários
 ├─ App.tsx             # Componente raiz
 ├─ main.tsx            # Ponto de entrada
 └─ index.css           # Estilos globais
 ```
 
+## Armazenamento
+- **Firestore Database**: Os gastos são salvos na coleção `gastos` com sincronização em tempo real via `onSnapshot`.
+- **localStorage**: Apenas usuários e categorias são persistidos localmente (para fallback e inicialização).
+- **Security Rules**: Regras no arquivo `firestore.rules` — acesso somente para usuários autenticados.
+
 ## Como começar
 1. Clone o repositório.
-2. Crie um arquivo `.env` copiando `.env.example` e preencha as variáveis.
+2. Crie um arquivo `.env` copiando `.env.example` e preencha as variáveis do Firebase e Gemini.
 3. Rode `npm install` para instalar dependências.
 4. Inicie o dev server com `npm run dev`.
 5. Abra o navegador em `http://localhost:3000`.
 
 ## Observações
 - O arquivo `package.json` marca o projeto como `private: true`, então não há licença pública definida.
-- A aplicação está preparada para ser empacotada com Vite, mas pode ser facilmente hospedada em qualquer servidor HTTP.
+- A aplicação está preparada para ser empacotada com Vite e hospedada em qualquer servidor HTTP ou Firebase Hosting.
 
 ```
  

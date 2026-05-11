@@ -108,8 +108,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...expense,
         createdAt: new Date().toISOString()
       });
-    } catch (error) {
-      console.error("Error adding expense to Firestore:", error);
+    } catch (error: any) {
+      console.error("ERRO DETALHADO:", error.code, error.message, error);
       alert("Erro ao salvar gasto. Tente novamente.");
     }
   };
