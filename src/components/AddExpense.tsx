@@ -56,10 +56,17 @@ export const AddExpense = () => {
   }, [selectedCatId, subcategories, subcategory]);
 
   const handleSave = async () => {
+<<<<<<< HEAD
     if (amountRaw <= 0) return alert('Por favor, informe um valor.');
     if (!selectedCatId) return alert('Selecione uma categoria.');
     if (!subcategory.trim()) return alert('Informe uma subcategoria.');
     if (!payerId) return alert('Selecione quem pagou.');
+=======
+    if (amountRaw <= 0) return alert('Opa! Você esqueceu de informar o valor do gasto.');
+    if (!selectedCatId) return alert('Por favor, selecione uma categoria para organizar seus gastos.');
+    if (!subcategory.trim()) return alert('Informe uma subcategoria (ex: Almoço, Gasolina...) para facilitar sua análise.');
+    if (!payerId) return alert('Quem pagou este gasto? Selecione um perfil.');
+>>>>>>> dev2
 
     setIsSaving(true);
 
@@ -128,15 +135,15 @@ export const AddExpense = () => {
         {amountRaw > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">Em qual categoria?</p>
-             <div className="grid grid-cols-4 gap-3">
+             <div className="grid grid-cols-3 gap-3">
                {categories.map(c => (
                  <button
                    key={c.id}
                    onClick={() => { setSelectedCatId(c.id); setSubcategory(''); }}
-                   className={`flex flex-col items-center p-3 rounded-2xl border-2 transition-all ${selectedCatId === c.id ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 bg-white'}`}
+                   className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all min-h-[80px] ${selectedCatId === c.id ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 bg-white'}`}
                  >
-                   <span className="text-2xl mb-1">{c.icon}</span>
-                   <span className="text-[10px] font-semibold text-slate-700 truncate w-full text-center">{c.name}</span>
+                   <span className="text-3xl mb-1">{c.icon}</span>
+                   <span className="text-sm font-semibold text-slate-700 truncate w-full text-center">{c.name}</span>
                  </button>
                ))}
              </div>
@@ -151,8 +158,10 @@ export const AddExpense = () => {
                type="text"
                value={subcategory}
                onChange={e => setSubcategory(e.target.value)}
+               onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+               autoComplete="off"
                placeholder="Ex: Combustível, Lavagem..."
-               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 mb-3"
+               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 mb-3"
              />
              {subcategorySuggestions.length > 0 && (
                <div className="flex flex-wrap gap-2">
@@ -160,7 +169,11 @@ export const AddExpense = () => {
                     <button
                       key={sub}
                       onClick={() => setSubcategory(sub)}
+<<<<<<< HEAD
                       className="bg-slate-200/50 text-slate-600 text-sm px-4 min-h-[44px] rounded-full hover:bg-slate-200 transition-colors"
+=======
+                      className="bg-slate-200/50 text-slate-600 text-sm px-5 py-3 min-h-[44px] rounded-full hover:bg-slate-200 transition-colors"
+>>>>>>> dev2
                     >
                      {sub}
                    </button>
@@ -206,6 +219,8 @@ export const AddExpense = () => {
                      type="text"
                      value={description}
                      onChange={e => setDescription(e.target.value)}
+                     onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                     autoComplete="off"
                      placeholder="Observação..."
                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 h-12 text-sm text-slate-800 font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                   />

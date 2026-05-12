@@ -40,4 +40,5 @@ export type AppState = {
   subcategories: Subcategory[];
   currentUser: User | null;
   currentTab: "dashboard" | "history" | "settings";
+  isOnline: boolean;
 };

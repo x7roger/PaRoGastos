@@ -45,6 +45,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       subcategories: [],
       currentUser: null,
       currentTab: 'dashboard',
+      isOnline: true,
     };
   });
   
@@ -78,9 +79,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...doc.data()
       })) as Expense[];
       expenses.sort((a, b) => {
+<<<<<<< HEAD
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return dateB - dateA;
+=======
+        const dateA = a.date ? new Date(a.date.split('-').join('/')).getTime() : 0;
+        const dateB = b.date ? new Date(b.date.split('-').join('/')).getTime() : 0;
+        if (dateB !== dateA) return dateB - dateA;
+        
+        // Secondary sort by creation time for items on the same day
+        const createA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const createB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return createB - createA;
+>>>>>>> dev2
       });
       setState(s => ({ ...s, expenses }));
     }, (error) => {
@@ -106,13 +118,49 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
+<<<<<<< HEAD
   // Save only users and categories to localStorage (expenses are in Firestore)
+=======
+  // Real-time listener for categories from Firestore
+  useEffect(() => {
+    const q = query(collection(db, "categorias"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const categories = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Category[];
+      
+      if (categories.length > 0) {
+        setState(s => ({ ...s, categories }));
+      }
+    }, (error) => {
+      console.error("Error fetching categories from Firestore:", error);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Connection status listener
+  useEffect(() => {
+    const handleOnline = () => setState(s => ({ ...s, isOnline: true }));
+    const handleOffline = () => setState(s => ({ ...s, isOnline: false }));
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Save only users to localStorage (categories and expenses are in Firestore)
+>>>>>>> dev2
   useEffect(() => {
     saveState({
       users: state.users,
-      categories: state.categories,
     });
-  }, [state.users, state.categories]);
+  }, [state.users]);
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
@@ -146,16 +194,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addCategory = (category: Omit<Category, 'id'>) => {
-    const newCategory: Category = {
-      ...category,
-      id: `cat_${Date.now()}`
-    };
-    setState(s => ({ ...s, categories: [...s.categories, newCategory] }));
+  const addCategory = async (category: Omit<Category, 'id'>) => {
+    try {
+      await addDoc(collection(db, "categorias"), category);
+    } catch (error) {
+      console.error("Error adding category to Firestore:", error);
+      alert("Erro ao salvar categoria.");
+    }
   };
 
-  const deleteCategory = (id: string) => {
-    setState(s => ({ ...s, categories: s.categories.filter(c => c.id !== id) }));
+  const deleteCategory = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "categorias", id));
+    } catch (error) {
+      console.error("Error deleting category from Firestore:", error);
+      alert("Erro ao excluir categoria.");
+    }
+  };
+
+  const saveSubcategory = async (nome: string, categoria: string) => {
+    try {
+      const q = query(collection(db, "subcategorias"), where("nome", "==", nome), where("categoria", "==", categoria));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        await addDoc(collection(db, "subcategorias"), {
+          nome,
+          categoria,
+          criadoEm: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error("Error saving subcategory to Firestore:", error);
+    }
   };
 
   const saveSubcategory = async (nome: string, categoria: string) => {
