@@ -33,6 +33,12 @@ Esta aplicação web foi desenvolvida para facilitar o controle e análise de de
 - **Estado vazio amigável** quando não há gastos no período selecionado.
 - **Espaçamentos consistentes** seguindo múltiplos de 8px.
 
+## Últimas Atualizações (Branch dev2)
+- **Correção no Storage de Categorias**: Corrigido bug no `localStorage` que limpava o cache de categorias e travava a interface de inclusão de gastos.
+- **Datas em Tempo Real**: Ajuste no parser de datas no Firestore `onSnapshot` para garantir atualização instantânea das transações no Dashboard.
+- **Permissões Firestore**: Inclusão automática de `userId` nos envios prevenindo erros silenciosos de segurança (Permission Denied).
+- **Otimização Mobile**: Ajustes finos no formulário e no *motion* para garantir usabilidade perfeita em 375px (sem quebra de layout com teclado virtual).
+
 ## Variáveis de ambiente
 As variáveis são definidas em um arquivo de ambiente (*`.env`*). Um modelo de exemplo está em `.env.example`:
 
