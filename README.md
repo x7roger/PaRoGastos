@@ -3,7 +3,6 @@
   <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-
 # Projeto PaRo Gastos
 
 ## Visão geral
@@ -16,12 +15,24 @@ Esta aplicação web foi desenvolvida para facilitar o controle e análise de de
 - **Outros**: date-fns, motion, lucide‑react.
 
 ## Funcionalidades
+
+### Gerais
 - **Autenticação Firebase**: Login com email e senha utilizando o Firebase Authentication.
-- **Gastos em tempo real**: Os gastos são armazenados e sincronizados em tempo real via Firestore (coleção `gastos`).
+- **Gastos em tempo real**: Os gastos são sincronizados automaticamente via Firestore `onSnapshot` — qualquer alteração reflete imediatamente em todas as abas abertas.
 - **Dashboard com gráficos**: Visualização mensal com gráficos de barras e rosca (Recharts), KPIs por usuário e por categoria.
-- **Histórico completo**: Navegação por todos os gastos registrados com opção de excluir.
+- **Filtro "Meu Gasto"**: Clique no card "Meu Gasto" no Dashboard para filtrar todos os elementos da tela (KPIs, gráficos) exibindo apenas os gastos do usuário logado. Clique novamente para voltar à visão geral.
+- **Histórico completo**: Navegação por todos os gastos registrados com filtro por usuário e opção de excluir.
+- **Subcategorias inteligentes**: Ao digitar uma subcategoria no formulário de gasto, sugestões são buscadas em tempo real no Firestore baseadas na categoria selecionada. Novas subcategorias são salvas automaticamente (sem duplicatas).
 - **Gerenciamento de categorias**: Criação e exclusão de categorias personalizadas.
 - **Suporte a múltiplos usuários**: Dois perfis fixos (Rogério e Patrícia) com cores distintas.
+
+### UX/UI Mobile
+- **Área de toque mínima de 44px** em todos os botões e elementos interativos.
+- **Transições suaves entre abas** com animações de 200ms via Motion.
+- **Scroll suave** em todas as telas.
+- **Loading states** no salvamento de gastos com feedback visual.
+- **Estado vazio amigável** quando não há gastos no período selecionado.
+- **Espaçamentos consistentes** seguindo múltiplos de 8px.
 
 ## Variáveis de ambiente
 As variáveis são definidas em um arquivo de ambiente (*`.env`*). Um modelo de exemplo está em `.env.example`:
@@ -73,8 +84,12 @@ src/
 └─ index.css           # Estilos globais
 ```
 
+## Coleções Firestore
+- **`gastos`**: Documentos com `amount`, `categoryId`, `subcategory`, `description`, `date`, `paidById`, `createdAt`. Sincronizados em tempo real via `onSnapshot`.
+- **`subcategorias`**: Documentos com `nome`, `categoria`, `criadoEm`. Populada automaticamente ao salvar novos gastos.
+
 ## Armazenamento
-- **Firestore Database**: Os gastos são salvos na coleção `gastos` com sincronização em tempo real via `onSnapshot`.
+- **Firestore Database**: Gastos e subcategorias são salvos no Firestore com sincronização em tempo real via `onSnapshot`.
 - **localStorage**: Apenas usuários e categorias são persistidos localmente (para fallback e inicialização).
 - **Security Rules**: Regras no arquivo `firestore.rules` — acesso somente para usuários autenticados.
 
@@ -88,10 +103,3 @@ src/
 ## Observações
 - O arquivo `package.json` marca o projeto como `private: true`, então não há licença pública definida.
 - A aplicação está preparada para ser empacotada com Vite e hospedada em qualquer servidor HTTP ou Firebase Hosting.
-
-```
- 
-
-.
-
-
