@@ -26,11 +26,7 @@ export const Dashboard = () => {
   const { expenses, currentUser, users, isOnline } = useAppContext();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [viewBy, setViewBy] = useState<'category' | 'subcategory'>('category');
-<<<<<<< HEAD
-  const [filterMyExpenses, setFilterMyExpenses] = useState(false);
-=======
   const [filterType, setFilterType] = useState<'all' | 'me' | 'others'>('all');
->>>>>>> dev2
 
   // Filter expenses by current month
   const monthlyExpenses = useMemo(() => {
@@ -42,17 +38,11 @@ export const Dashboard = () => {
 
   // Optional user filter applied on top of monthly filter
   const displayExpenses = useMemo(() => {
-<<<<<<< HEAD
-    if (!filterMyExpenses || !currentUser) return monthlyExpenses;
-    return monthlyExpenses.filter(e => e.paidById === currentUser.id);
-  }, [monthlyExpenses, filterMyExpenses, currentUser]);
-=======
     if (filterType === 'all' || !currentUser) return monthlyExpenses;
     if (filterType === 'me') return monthlyExpenses.filter(e => e.paidById === currentUser.id);
     if (filterType === 'others') return monthlyExpenses.filter(e => e.paidById !== currentUser.id);
     return monthlyExpenses;
   }, [monthlyExpenses, filterType, currentUser]);
->>>>>>> dev2
 
   // KPIs
   const totalSpent = useMemo(() => displayExpenses.reduce((acc, e) => acc + e.amount, 0), [displayExpenses]);
@@ -76,8 +66,6 @@ export const Dashboard = () => {
 
     return Array.from(map.values()).sort((a, b) => b.value - a.value);
   }, [displayExpenses, viewBy]);
-<<<<<<< HEAD
-=======
 
   // Pie Chart Specific Data: Group items beyond 8 into "Outros"
   const pieChartData = useMemo(() => {
@@ -91,7 +79,6 @@ export const Dashboard = () => {
       { name: 'Outros', value: othersValue, color: '#94a3b8' }
     ];
   }, [chartData]);
->>>>>>> dev2
 
   const topCategoryName = chartData.length > 0 ? chartData[0].name : '-';
 
@@ -191,17 +178,7 @@ export const Dashboard = () => {
             <h3 className="text-indigo-100 text-xs font-medium uppercase tracking-wider mb-1">Total</h3>
             <p className="text-xl font-bold truncate">{formatCurrency(totalSpent)}</p>
           </div>
-          
-<<<<<<< HEAD
-          <button 
-            onClick={() => setFilterMyExpenses(!filterMyExpenses)}
-            className={`snap-center shrink-0 w-36 h-full p-3 rounded-xl shadow-sm border-2 flex flex-col justify-center text-left transition-all ${filterMyExpenses ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-100 text-slate-800'}`}
-          >
-            <h3 className={`text-[10px] font-medium uppercase tracking-wider mb-0.5 ${filterMyExpenses ? 'text-indigo-100' : 'text-slate-400'}`}>Meu Gasto</h3>
-            <p className={`text-base font-bold truncate ${filterMyExpenses ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(mySpent)}</p>
-            {filterMyExpenses && <span className="text-[9px] text-indigo-200 font-medium mt-0.5">Filtro ativo • toque para limpar</span>}
-          </button>
-=======
+
           <motion.button 
             whileTap={{ scale: 0.98 }}
             onClick={() => setFilterType(filterType === 'me' ? 'all' : 'me')}
@@ -210,7 +187,6 @@ export const Dashboard = () => {
             <h3 className={`text-xs font-medium uppercase tracking-wider mb-1 ${filterType === 'me' ? 'text-indigo-100' : 'text-slate-400'}`}>Meu Gasto</h3>
             <p className={`text-xl font-bold truncate ${filterType === 'me' ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(mySpent)}</p>
           </motion.button>
->>>>>>> dev2
 
           <motion.button 
             whileTap={{ scale: 0.98 }}
@@ -320,9 +296,8 @@ export const Dashboard = () => {
           <p className="font-medium text-slate-500 mb-1">Nada por aqui ainda</p>
           <p className="text-sm">Nenhum gasto registrado em {formattedMonth}</p>
         </motion.div>
-      )}
-    </div>
+        )}
+      </div>
     </div>
   );
 };
-

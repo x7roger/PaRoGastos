@@ -76,13 +76,8 @@ export const Settings = () => {
                     <span className="font-medium text-slate-700">{c.name}</span>
                   </div>
                   <button 
-<<<<<<< HEAD
-                    onClick={() => { if(window.confirm('Excluir categoria? Gastos antigos não serão apagados.')) deleteCategory(c.id) }} 
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full"
-=======
                     onClick={() => { if(window.confirm('Tem certeza que deseja excluir esta categoria? Os gastos que você já cadastrou com ela continuarão salvos no seu histórico.')) deleteCategory(c.id) }} 
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full active:scale-95 transition-transform"
->>>>>>> dev2
                   >
                     <Trash2 size={16} />
                   </button>
@@ -117,13 +112,8 @@ export const Settings = () => {
                     <span className="font-medium text-slate-700">{u.name}</span>
                   </div>
                   <button 
-<<<<<<< HEAD
-                    onClick={() => { if(window.confirm('Excluir usuário? Ele não poderá mais fazer login.')) deleteUser(u.id) }} 
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full"
-=======
                     onClick={() => { if(window.confirm('Deseja remover este usuário? Ele perderá o acesso ao aplicativo imediatamente.')) deleteUser(u.id) }} 
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full active:scale-95 transition-transform"
->>>>>>> dev2
                   >
                     <Trash2 size={16} />
                   </button>
@@ -202,4 +192,3 @@ export const Settings = () => {
     </div>
   );
 };
-

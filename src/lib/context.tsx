@@ -79,20 +79,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...doc.data()
       })) as Expense[];
       expenses.sort((a, b) => {
-<<<<<<< HEAD
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
-=======
-        const dateA = a.date ? new Date(a.date.split('-').join('/')).getTime() : 0;
-        const dateB = b.date ? new Date(b.date.split('-').join('/')).getTime() : 0;
+        const dateA = a.date ? new Date(a.date.split('/').join('/')).getTime() : 0;
+        const dateB = b.date ? new Date(b.date.split('/').join('/')).getTime() : 0;
         if (dateB !== dateA) return dateB - dateA;
         
         // Secondary sort by creation time for items on the same day
         const createA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const createB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return createB - createA;
->>>>>>> dev2
       });
       setState(s => ({ ...s, expenses }));
     }, (error) => {
@@ -118,9 +112,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-<<<<<<< HEAD
-  // Save only users and categories to localStorage (expenses are in Firestore)
-=======
   // Real-time listener for categories from Firestore
   useEffect(() => {
     const q = query(collection(db, "categorias"));
@@ -155,7 +146,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Save only users to localStorage (categories and expenses are in Firestore)
->>>>>>> dev2
   useEffect(() => {
     saveState({
       users: state.users,
@@ -212,38 +202,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const saveSubcategory = async (nome: string, categoria: string) => {
-    try {
-      const q = query(collection(db, "subcategorias"), where("nome", "==", nome), where("categoria", "==", categoria));
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        await addDoc(collection(db, "subcategorias"), {
-          nome,
-          categoria,
-          criadoEm: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error("Error saving subcategory to Firestore:", error);
-    }
-  };
-
-  const saveSubcategory = async (nome: string, categoria: string) => {
-    try {
-      const q = query(collection(db, "subcategorias"), where("nome", "==", nome), where("categoria", "==", categoria));
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        await addDoc(collection(db, "subcategorias"), {
-          nome,
-          categoria,
-          criadoEm: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error("Error saving subcategory to Firestore:", error);
-    }
-  };
-
+ 
+ 
   const addUser = (user: Omit<User, 'id'>) => {
     const newUser: User = {
       ...user,

@@ -56,17 +56,10 @@ export const AddExpense = () => {
   }, [selectedCatId, subcategories, subcategory]);
 
   const handleSave = async () => {
-<<<<<<< HEAD
-    if (amountRaw <= 0) return alert('Por favor, informe um valor.');
-    if (!selectedCatId) return alert('Selecione uma categoria.');
-    if (!subcategory.trim()) return alert('Informe uma subcategoria.');
-    if (!payerId) return alert('Selecione quem pagou.');
-=======
     if (amountRaw <= 0) return alert('Opa! Você esqueceu de informar o valor do gasto.');
     if (!selectedCatId) return alert('Por favor, selecione uma categoria para organizar seus gastos.');
     if (!subcategory.trim()) return alert('Informe uma subcategoria (ex: Almoço, Gasolina...) para facilitar sua análise.');
     if (!payerId) return alert('Quem pagou este gasto? Selecione um perfil.');
->>>>>>> dev2
 
     setIsSaving(true);
 
@@ -169,11 +162,7 @@ export const AddExpense = () => {
                     <button
                       key={sub}
                       onClick={() => setSubcategory(sub)}
-<<<<<<< HEAD
-                      className="bg-slate-200/50 text-slate-600 text-sm px-4 min-h-[44px] rounded-full hover:bg-slate-200 transition-colors"
-=======
                       className="bg-slate-200/50 text-slate-600 text-sm px-5 py-3 min-h-[44px] rounded-full hover:bg-slate-200 transition-colors"
->>>>>>> dev2
                     >
                      {sub}
                    </button>
@@ -246,4 +235,3 @@ export const AddExpense = () => {
     </motion.div>
   );
 };
-
