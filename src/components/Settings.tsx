@@ -37,7 +37,7 @@ export const Settings = () => {
         <h2 className="text-2xl font-bold text-slate-800">Ajustes</h2>
         <button 
           onClick={logout} 
-          className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+          className="flex items-center gap-2 px-4 min-h-[44px] bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
         >
           <LogOut size={16} />
           <span>Trocar usuário</span>
@@ -54,7 +54,7 @@ export const Settings = () => {
             </h3>
             <button 
               onClick={() => setIsCatModalOpen(true)}
-              className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1"
+              className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-4 min-h-[44px] rounded-full flex items-center gap-1"
             >
               <Plus size={14} /> Nova
             </button>
@@ -71,7 +71,7 @@ export const Settings = () => {
                   </div>
                   <button 
                     onClick={() => { if(window.confirm('Excluir categoria? Gastos antigos não serão apagados.')) deleteCategory(c.id) }} 
-                    className="p-2 text-rose-500 bg-rose-50 rounded-full"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -90,7 +90,7 @@ export const Settings = () => {
             </h3>
             <button 
                onClick={() => setIsUserModalOpen(true)}
-              className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1"
+              className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-4 min-h-[44px] rounded-full flex items-center gap-1"
             >
               <Plus size={14} /> Novo
             </button>
@@ -107,7 +107,7 @@ export const Settings = () => {
                   </div>
                   <button 
                     onClick={() => { if(window.confirm('Excluir usuário? Ele não poderá mais fazer login.')) deleteUser(u.id) }} 
-                    className="p-2 text-rose-500 bg-rose-50 rounded-full"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full"
                   >
                     <Trash2 size={16} />
                   </button>

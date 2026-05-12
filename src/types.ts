@@ -26,10 +26,18 @@ export type Expense = {
   createdAt: string;
 };
 
+export type Subcategory = {
+  id: string;
+  nome: string;
+  categoria: string;
+  criadoEm: string;
+};
+
 export type AppState = {
   users: User[];
   categories: Category[];
   expenses: Expense[];
+  subcategories: Subcategory[];
   currentUser: User | null;
   currentTab: "dashboard" | "history" | "settings";
 };
