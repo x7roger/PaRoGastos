@@ -79,9 +79,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...doc.data()
       })) as Expense[];
       expenses.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
+        const dateA = a.date ? new Date(a.date.split('-').join('/')).getTime() : 0;
+        const dateB = b.date ? new Date(b.date.split('-').join('/')).getTime() : 0;
+        if (dateB !== dateA) return dateB - dateA;
+        
+        // Secondary sort by creation time for items on the same day
+        const createA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const createB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return createB - createA;
       });
       setState(s => ({ ...s, expenses }));
     }, (error) => {

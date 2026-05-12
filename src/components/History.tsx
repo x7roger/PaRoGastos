@@ -18,7 +18,7 @@ export const History = () => {
 
   // Group by date (e.g., '15 de Agosto')
   const grouped = filteredExpenses.reduce<Record<string, typeof expenses>>((acc, e) => {
-    const d = new Date(e.date);
+    const d = new Date(e.date + 'T00:00:00');
     const dateKey = format(d, "dd 'de' MMMM", { locale: ptBR });
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(e);

@@ -31,7 +31,7 @@ export const Dashboard = () => {
   // Filter expenses by current month
   const monthlyExpenses = useMemo(() => {
     return expenses.filter(e => {
-      const date = new Date(e.date);
+      const date = new Date(e.date + 'T00:00:00');
       return date.getMonth() === currentMonth.getMonth() && date.getFullYear() === currentMonth.getFullYear();
     });
   }, [expenses, currentMonth]);
@@ -93,7 +93,7 @@ export const Dashboard = () => {
 
     const nextMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
     return expenses.some(e => {
-      const d = new Date(e.date);
+      const d = new Date(e.date + 'T00:00:00');
       return d >= nextMonthStart;
     });
   }, [currentMonth, expenses]);
