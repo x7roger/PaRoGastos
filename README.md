@@ -18,12 +18,11 @@ Esta aplicação web foi desenvolvida para facilitar o controle e análise de de
 
 ### Gerais
 - **Autenticação Firebase**: Login com email e senha utilizando o Firebase Authentication.
-- **Gastos em tempo real**: Os gastos são sincronizados automaticamente via Firestore `onSnapshot` — qualquer alteração reflete imediatamente em todas as abas abertas.
-- **Dashboard com gráficos**: Visualização mensal com gráficos de barras e rosca (Recharts), KPIs por usuário e por categoria.
-- **Filtro "Meu Gasto"**: Clique no card "Meu Gasto" no Dashboard para filtrar todos os elementos da tela (KPIs, gráficos) exibindo apenas os gastos do usuário logado. Clique novamente para voltar à visão geral.
-- **Histórico completo**: Navegação por todos os gastos registrados com filtro por usuário e opção de excluir.
-- **Subcategorias inteligentes**: Ao digitar uma subcategoria no formulário de gasto, sugestões são buscadas em tempo real no Firestore baseadas na categoria selecionada. Novas subcategorias são salvas automaticamente (sem duplicatas).
-- **Gerenciamento de categorias**: Criação e exclusão de categorias personalizadas.
+- **Gastos e Categorias em tempo real**: Tanto os gastos quanto as categorias são sincronizados automaticamente via Firestore `onSnapshot` — qualquer alteração reflete imediatamente para todos os usuários.
+- **Dashboard Interativo**: Visualização mensal com gráficos de barras e rosca (Recharts), KPIs por usuário e por categoria.
+- **Filtros "Meu Gasto" e "Outros"**: Cards clicáveis no Dashboard que permitem filtrar toda a interface para exibir apenas os seus gastos ou os gastos dos demais usuários, com feedback visual de esmaecimento.
+- **Histórico Cronológico**: Navegação por todos os gastos registrados, agrupados e ordenados pela data informada pelo usuário (não pela data de criação).
+- **Subcategorias com Cores Inteligentes**: Sugestões automáticas baseadas na categoria. No modo "Subs", os gráficos utilizam cores vibrantes e consistentes geradas via hash para cada subcategoria.
 - **Suporte a múltiplos usuários**: Dois perfis fixos (Rogério e Patrícia) com cores distintas.
 
 ### UX/UI Mobile
@@ -89,8 +88,8 @@ src/
 - **`subcategorias`**: Documentos com `nome`, `categoria`, `criadoEm`. Populada automaticamente ao salvar novos gastos.
 
 ## Armazenamento
-- **Firestore Database**: Gastos e subcategorias são salvos no Firestore com sincronização em tempo real via `onSnapshot`.
-- **localStorage**: Apenas usuários e categorias são persistidos localmente (para fallback e inicialização).
+- **Firestore Database**: Gastos, categorias e subcategorias são salvos no Firestore com sincronização em tempo real via `onSnapshot`.
+- **localStorage**: Apenas a lista de usuários é persistida localmente para agilizar a inicialização.
 - **Security Rules**: Regras no arquivo `firestore.rules` — acesso somente para usuários autenticados.
 
 ## Como começar
