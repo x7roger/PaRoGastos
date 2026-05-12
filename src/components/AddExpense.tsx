@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect, useRef, ChangeEvent } from 'react';
 import { motion } from 'motion/react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Loader2 } from 'lucide-react';
 import { useAppContext } from '../lib/context';
 
 export const AddExpense = () => {
-  const { categories, currentUser, users, addExpense, setIsAddExpenseOpen, expenses } = useAppContext();
+  const { categories, currentUser, users, subcategories, addExpense, saveSubcategory, setIsAddExpenseOpen } = useAppContext();
   
   const [amountRaw, setAmountRaw] = useState<number>(0);
   const [amountDisplay, setAmountDisplay] = useState('R$ 0,00');
@@ -13,6 +13,7 @@ export const AddExpense = () => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [payerId, setPayerId] = useState(currentUser?.id || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   const amountRef = useRef<HTMLInputElement>(null);
 
@@ -36,54 +37,67 @@ export const AddExpense = () => {
     setAmountDisplay(formatted);
   };
 
-  // Derive subcategory suggestions based on selected category
+  // Filter subcategory suggestions from Firestore based on selected category and text input
   const subcategorySuggestions = useMemo(() => {
     if (!selectedCatId) return [];
     
-    // Check past expenses for this category
-    const catExpenses = expenses.filter(e => e.categoryId === selectedCatId);
-    const uniqueSubs = new Set<string>();
+    const catSubcategories = subcategories
+      .filter(s => s.categoria === selectedCatId)
+      .map(s => s.nome);
     
-    catExpenses.forEach(e => {
-      if (e.subcategory) uniqueSubs.add(e.subcategory);
-    });
+    const uniqueSubs = Array.from(new Set(catSubcategories));
     
-    return Array.from(uniqueSubs).slice(0, 8); // return up to 8 max
-  }, [selectedCatId, expenses]);
+    if (subcategory.trim()) {
+      const lower = subcategory.toLowerCase();
+      return uniqueSubs.filter(s => s.toLowerCase().includes(lower)).slice(0, 8);
+    }
+    
+    return uniqueSubs.slice(0, 8);
+  }, [selectedCatId, subcategories, subcategory]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (amountRaw <= 0) return alert('Por favor, informe um valor.');
-    if (!selectedCatId) return alert('Por favor, selecione uma categoria.');
-    if (!subcategory.trim()) return alert('Por favor, informe uma subcategoria.');
-    if (!payerId) return alert('Por favor, informe quem pagou.');
+    if (!selectedCatId) return alert('Selecione uma categoria.');
+    if (!subcategory.trim()) return alert('Informe uma subcategoria.');
+    if (!payerId) return alert('Selecione quem pagou.');
+
+    setIsSaving(true);
 
     const cat = categories.find(c => c.id === selectedCatId)!;
 
-    addExpense({
-      amount: amountRaw,
-      categoryId: cat.id,
-      categoryName: cat.name,
-      categoryColor: cat.color,
-      categoryIcon: cat.icon,
-      subcategory: subcategory.trim(),
-      description: description.trim(),
-      date,
-      paidById: payerId
-    });
+    try {
+      await addExpense({
+        amount: amountRaw,
+        categoryId: cat.id,
+        categoryName: cat.name,
+        categoryColor: cat.color,
+        categoryIcon: cat.icon,
+        subcategory: subcategory.trim(),
+        description: description.trim(),
+        date,
+        paidById: payerId
+      });
 
-    setIsAddExpenseOpen(false);
+      await saveSubcategory(subcategory.trim(), selectedCatId);
+
+      setIsAddExpenseOpen(false);
+    } catch {
+      alert('Não foi possível salvar. Tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: '100% '}}
+      initial={{ opacity: 0, y: '100%' }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       className="bg-slate-50 h-full w-full flex flex-col z-50 fixed inset-0 overflow-hidden"
     >
       <div className="bg-white px-6 py-4 flex justify-between items-center shadow-sm z-10 shrink-0">
-        <button onClick={() => setIsAddExpenseOpen(false)} className="text-slate-400 p-2 -ml-2">
+        <button onClick={() => setIsAddExpenseOpen(false)} className="text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2">
           <X size={24} />
         </button>
         <span className="font-semibold text-slate-800">Novo Gasto</span>
@@ -143,11 +157,11 @@ export const AddExpense = () => {
              {subcategorySuggestions.length > 0 && (
                <div className="flex flex-wrap gap-2">
                  {subcategorySuggestions.map(sub => (
-                   <button
-                     key={sub}
-                     onClick={() => setSubcategory(sub)}
-                     className="bg-slate-200/50 text-slate-600 text-sm px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors"
-                   >
+                    <button
+                      key={sub}
+                      onClick={() => setSubcategory(sub)}
+                      className="bg-slate-200/50 text-slate-600 text-sm px-4 min-h-[44px] rounded-full hover:bg-slate-200 transition-colors"
+                    >
                      {sub}
                    </button>
                  ))}
@@ -176,14 +190,14 @@ export const AddExpense = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
                <div>
                   <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-2">Data</p>
                   <input
                     type="date"
                     value={date}
                     onChange={e => setDate(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 h-12 text-sm text-slate-800 font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                   />
                </div>
                <div>
@@ -193,7 +207,7 @@ export const AddExpense = () => {
                      value={description}
                      onChange={e => setDescription(e.target.value)}
                      placeholder="Observação..."
-                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600"
+                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 h-12 text-sm text-slate-800 font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                   />
                </div>
             </div>
@@ -207,11 +221,11 @@ export const AddExpense = () => {
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent pt-12 shrink-0">
         <button
           onClick={handleSave}
-          disabled={amountRaw <= 0 || !selectedCatId || !subcategory.trim() || !payerId}
-          className="w-full py-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:bg-indigo-700 active:scale-95"
+          disabled={isSaving || amountRaw <= 0 || !selectedCatId || !subcategory.trim() || !payerId}
+          className="w-full min-h-[44px] rounded-xl font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:bg-indigo-700 active:scale-95"
         >
-          <Check size={20} />
-          Salvar Gasto
+          {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Check size={20} />}
+          {isSaving ? 'Salvando...' : 'Salvar Gasto'}
         </button>
       </div>
     </motion.div>

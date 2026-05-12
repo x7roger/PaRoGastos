@@ -10,6 +10,7 @@ export const Dashboard = () => {
   const { expenses, currentUser, users } = useAppContext();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [viewBy, setViewBy] = useState<'category' | 'subcategory'>('category');
+  const [filterMyExpenses, setFilterMyExpenses] = useState(false);
 
   // Filter expenses by current month
   const monthlyExpenses = useMemo(() => {
@@ -19,16 +20,22 @@ export const Dashboard = () => {
     });
   }, [expenses, currentMonth]);
 
+  // Optional user filter applied on top of monthly filter
+  const displayExpenses = useMemo(() => {
+    if (!filterMyExpenses || !currentUser) return monthlyExpenses;
+    return monthlyExpenses.filter(e => e.paidById === currentUser.id);
+  }, [monthlyExpenses, filterMyExpenses, currentUser]);
+
   // KPIs
-  const totalSpent = useMemo(() => monthlyExpenses.reduce((acc, e) => acc + e.amount, 0), [monthlyExpenses]);
+  const totalSpent = useMemo(() => displayExpenses.reduce((acc, e) => acc + e.amount, 0), [displayExpenses]);
   const mySpent = useMemo(() => monthlyExpenses.filter(e => e.paidById === currentUser?.id).reduce((acc, e) => acc + e.amount, 0), [monthlyExpenses, currentUser]);
-  const othersSpent = totalSpent - mySpent;
+  const othersSpent = monthlyExpenses.reduce((acc, e) => acc + e.amount, 0) - mySpent;
 
   // Chart Data: Category or Subcategory
   const chartData = useMemo(() => {
     const map = new Map<string, { name: string; value: number; color: string }>();
     
-    monthlyExpenses.forEach(e => {
+    displayExpenses.forEach(e => {
       const key = viewBy === 'category' ? e.categoryId : e.subcategory;
       const name = viewBy === 'category' ? e.categoryName : e.subcategory;
       const color = viewBy === 'category' ? e.categoryColor : '#6366f1'; // fallback color for sub
@@ -40,7 +47,7 @@ export const Dashboard = () => {
     });
 
     return Array.from(map.values()).sort((a, b) => b.value - a.value);
-  }, [monthlyExpenses, viewBy]);
+  }, [displayExpenses, viewBy]);
 
   const topCategoryName = chartData.length > 0 ? chartData[0].name : '-';
 
@@ -101,14 +108,14 @@ export const Dashboard = () => {
         <div className="flex items-center bg-slate-100 rounded-lg p-0.5">
           <button 
             onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-            className="p-1.5 text-slate-500 hover:text-indigo-600 transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
           <button 
             onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
             disabled={!canGoNext}
-            className={`p-1.5 transition-colors ${!canGoNext ? 'text-slate-300' : 'text-slate-500 hover:text-indigo-600'}`}
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors ${!canGoNext ? 'text-slate-300' : 'text-slate-500 hover:text-indigo-600'}`}
           >
             <ChevronRight size={18} />
           </button>
@@ -117,13 +124,13 @@ export const Dashboard = () => {
         <div className="flex bg-slate-100 p-0.5 rounded-lg flex-1 max-w-[180px]">
           <button 
             onClick={() => setViewBy('category')}
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${viewBy === 'category' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+            className={`flex-1 min-h-[44px] text-[11px] font-bold rounded-md transition-all ${viewBy === 'category' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
           >
             Categorias
           </button>
           <button 
             onClick={() => setViewBy('subcategory')}
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${viewBy === 'subcategory' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+            className={`flex-1 min-h-[44px] text-[11px] font-bold rounded-md transition-all ${viewBy === 'subcategory' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
           >
             Subs
           </button>
@@ -138,10 +145,14 @@ export const Dashboard = () => {
             <p className="text-base font-bold truncate">{formatCurrency(totalSpent)}</p>
           </div>
           
-          <div className="snap-center shrink-0 w-36 h-full bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
-            <h3 className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">Meu Gasto</h3>
-            <p className="text-base font-bold text-slate-800 truncate">{formatCurrency(mySpent)}</p>
-          </div>
+          <button 
+            onClick={() => setFilterMyExpenses(!filterMyExpenses)}
+            className={`snap-center shrink-0 w-36 h-full p-3 rounded-xl shadow-sm border-2 flex flex-col justify-center text-left transition-all ${filterMyExpenses ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-100 text-slate-800'}`}
+          >
+            <h3 className={`text-[10px] font-medium uppercase tracking-wider mb-0.5 ${filterMyExpenses ? 'text-indigo-100' : 'text-slate-400'}`}>Meu Gasto</h3>
+            <p className={`text-base font-bold truncate ${filterMyExpenses ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(mySpent)}</p>
+            {filterMyExpenses && <span className="text-[9px] text-indigo-200 font-medium mt-0.5">Filtro ativo • toque para limpar</span>}
+          </button>
 
           <div className="snap-center shrink-0 w-36 h-full bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
             <h3 className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">Outros</h3>
@@ -240,12 +251,13 @@ export const Dashboard = () => {
         </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center py-12 text-center text-slate-400">
-          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-            <span className="text-3xl">👋</span>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col items-center justify-center py-16 text-center text-slate-400">
+          <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+            <span className="text-4xl">📭</span>
           </div>
-          <p className="font-medium">Nenhum gasto registrado em {formattedMonth}</p>
-        </div>
+          <p className="font-medium text-slate-500 mb-1">Nada por aqui ainda</p>
+          <p className="text-sm">Nenhum gasto registrado em {formattedMonth}</p>
+        </motion.div>
       )}
     </div>
     </div>

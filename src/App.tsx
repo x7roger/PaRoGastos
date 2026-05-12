@@ -11,7 +11,7 @@ import { Settings } from "./components/Settings";
 import { AddExpense } from "./components/AddExpense";
 import { Navigation } from "./components/Navigation";
 import { Plus } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 const AppContent = () => {
   const { currentUser, currentTab, isAddExpenseOpen, setIsAddExpenseOpen } = useAppContext();
@@ -22,10 +22,20 @@ const AppContent = () => {
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden sm:border sm:border-slate-200">
-      <main className="flex-1 overflow-y-auto no-scrollbar">
-        {currentTab === "dashboard" && <Dashboard />}
-        {currentTab === "history" && <History />}
-        {currentTab === "settings" && <Settings />}
+      <main className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {currentTab === "dashboard" && <Dashboard />}
+            {currentTab === "history" && <History />}
+            {currentTab === "settings" && <Settings />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* FAB - Fixed Bottom Right */}

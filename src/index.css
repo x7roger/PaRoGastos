@@ -5,8 +5,8 @@
     display: none;
   }
   .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   
   .pb-safe {
@@ -15,5 +15,9 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 

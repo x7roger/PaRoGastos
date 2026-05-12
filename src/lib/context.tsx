@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppState, Category, Expense, User } from '../types';
+import { AppState, Category, Expense, Subcategory, User } from '../types';
 import { loadState, saveState } from './storage';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 type AppContextType = AppState & {
   login: (email: string, password: string) => Promise<void>;
@@ -15,6 +15,7 @@ type AppContextType = AppState & {
   deleteCategory: (id: string) => void;
   addUser: (user: Omit<User, 'id'>) => void;
   deleteUser: (id: string) => void;
+  saveSubcategory: (nome: string, categoria: string) => Promise<void>;
   isAddExpenseOpen: boolean;
   setIsAddExpenseOpen: (isOpen: boolean) => void;
 };
@@ -41,6 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       users: usersWithEmails,
       categories: loaded.categories || [],
       expenses: [],
+      subcategories: [],
       currentUser: null,
       currentTab: 'dashboard',
     };
@@ -69,15 +71,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Real-time listener for all expenses from Firestore
   useEffect(() => {
-    const q = query(collection(db, "gastos"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "gastos"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const expenses = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Expense[];
+      expenses.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
       setState(s => ({ ...s, expenses }));
     }, (error) => {
       console.error("Error fetching expenses from Firestore:", error);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Real-time listener for subcategories from Firestore
+  useEffect(() => {
+    const q = query(collection(db, "subcategorias"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const subcategories = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Subcategory[];
+      setState(s => ({ ...s, subcategories }));
+    }, (error) => {
+      console.error("Error fetching subcategories from Firestore:", error);
     });
 
     return () => unsubscribe();
@@ -135,6 +158,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setState(s => ({ ...s, categories: s.categories.filter(c => c.id !== id) }));
   };
 
+  const saveSubcategory = async (nome: string, categoria: string) => {
+    try {
+      const q = query(collection(db, "subcategorias"), where("nome", "==", nome), where("categoria", "==", categoria));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        await addDoc(collection(db, "subcategorias"), {
+          nome,
+          categoria,
+          criadoEm: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error("Error saving subcategory to Firestore:", error);
+    }
+  };
+
   const addUser = (user: Omit<User, 'id'>) => {
     const newUser: User = {
       ...user,
@@ -154,6 +193,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       addExpense, deleteExpense,
       addCategory, deleteCategory,
       addUser, deleteUser,
+      saveSubcategory,
       isAddExpenseOpen, setIsAddExpenseOpen
     }}>
       {!loading && children}
