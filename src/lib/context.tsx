@@ -79,8 +79,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...doc.data()
       })) as Expense[];
       expenses.sort((a, b) => {
-        const dateA = a.date ? new Date(a.date.split('/').join('/')).getTime() : 0;
-        const dateB = b.date ? new Date(b.date.split('/').join('/')).getTime() : 0;
+        const dateA = a.date ? new Date(a.date + 'T00:00:00').getTime() : 0;
+        const dateB = b.date ? new Date(b.date + 'T00:00:00').getTime() : 0;
         if (dateB !== dateA) return dateB - dateA;
         
         // Secondary sort by creation time for items on the same day
@@ -167,6 +167,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       await addDoc(collection(db, "gastos"), {
         ...expense,
+        userId: auth.currentUser?.uid || null,
         createdAt: new Date().toISOString()
       });
     } catch (error: any) {
@@ -207,6 +208,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await addDoc(collection(db, "subcategorias"), { 
         nome, 
         categoria,
+        userId: auth.currentUser?.uid || null,
         criadoEm: new Date().toISOString()
       });
     } catch (error) {

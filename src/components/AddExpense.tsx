@@ -115,7 +115,7 @@ export const AddExpense = () => {
                inputMode="numeric"
                value={amountDisplay}
                onChange={handleAmountChange}
-               className="w-full text-5xl font-bold font-sans text-center text-slate-800 bg-transparent border-none focus:ring-0 outline-none p-0 z-10 relative opacity-0 absolute inset-0 cursor-text h-full"
+               className="w-full text-5xl font-bold font-sans text-center text-slate-800 bg-transparent border-none focus:ring-0 outline-none p-0 z-10 absolute inset-0 cursor-text opacity-0"
             />
             {/* Visual display overlaid behind transparent input to look nice */}
             <div className={`w-full text-5xl font-bold font-sans text-center pointer-events-none transition-colors ${amountRaw > 0 ? 'text-indigo-600' : 'text-slate-300'}`}>
@@ -126,7 +126,7 @@ export const AddExpense = () => {
 
         {/* 2. CATEGORIA */}
         {amountRaw > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">Em qual categoria?</p>
              <div className="grid grid-cols-3 gap-3">
                {categories.map(c => (
@@ -140,12 +140,12 @@ export const AddExpense = () => {
                  </button>
                ))}
              </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 3. SUBCATEGORIA */}
         {selectedCatId && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">Qual é a subcategoria?</p>
              <input
                type="text"
@@ -169,12 +169,12 @@ export const AddExpense = () => {
                  ))}
                </div>
              )}
-          </motion.div>
+          </div>
         )}
 
         {/* 4, 5, 6. OUTROS DETALHES */}
         {subcategory.trim() && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
             
             <div>
               <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">Quem Pagou?</p>
@@ -216,7 +216,7 @@ export const AddExpense = () => {
                </div>
             </div>
 
-          </motion.div>
+          </div>
         )}
 
       </div>

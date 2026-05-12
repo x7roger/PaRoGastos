@@ -47,12 +47,17 @@ export const loadState = (): Partial<AppState> => {
 
 export const saveState = (state: Partial<AppState>) => {
   try {
-    // Determine what we actually want to save (don't save currentUser/tab session)
+    const serialized = localStorage.getItem(STORAGE_KEY);
+    const parsed = serialized ? JSON.parse(serialized) : {};
+    
+    // Only update the keys that are passed in the state object
     const stateToSave = {
-      users: state.users || [],
-      categories: state.categories || [],
-      expenses: state.expenses || []
+      ...parsed,
+      ...(state.users ? { users: state.users } : {}),
+      ...(state.categories ? { categories: state.categories } : {}),
+      ...(state.expenses ? { expenses: state.expenses } : {})
     };
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
   } catch (e) {
     console.error('Error saving state to local storage', e);
