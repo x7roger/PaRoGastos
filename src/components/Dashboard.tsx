@@ -6,11 +6,27 @@ import { useAppContext } from '../lib/context';
 import { formatCurrency } from '../lib/utils';
 import { User } from '../types';
 
+// Helper to generate consistent vibrant color from string hash
+const getStringColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Use HSL for vibrant, distinct colors
+  // Saturation 65-80, Lightness 45-60 for good visibility
+  const h = Math.abs(hash) % 360;
+  const s = 70 + (Math.abs(hash >> 8) % 15);
+  const l = 50 + (Math.abs(hash >> 16) % 10);
+  
+  return `hsl(${h}, ${s}%, ${l}%)`;
+};
+
 export const Dashboard = () => {
-  const { expenses, currentUser, users } = useAppContext();
+  const { expenses, currentUser, users, isOnline } = useAppContext();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [viewBy, setViewBy] = useState<'category' | 'subcategory'>('category');
-  const [filterMyExpenses, setFilterMyExpenses] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'me' | 'others'>('all');
 
   // Filter expenses by current month
   const monthlyExpenses = useMemo(() => {
@@ -22,9 +38,11 @@ export const Dashboard = () => {
 
   // Optional user filter applied on top of monthly filter
   const displayExpenses = useMemo(() => {
-    if (!filterMyExpenses || !currentUser) return monthlyExpenses;
-    return monthlyExpenses.filter(e => e.paidById === currentUser.id);
-  }, [monthlyExpenses, filterMyExpenses, currentUser]);
+    if (filterType === 'all' || !currentUser) return monthlyExpenses;
+    if (filterType === 'me') return monthlyExpenses.filter(e => e.paidById === currentUser.id);
+    if (filterType === 'others') return monthlyExpenses.filter(e => e.paidById !== currentUser.id);
+    return monthlyExpenses;
+  }, [monthlyExpenses, filterType, currentUser]);
 
   // KPIs
   const totalSpent = useMemo(() => displayExpenses.reduce((acc, e) => acc + e.amount, 0), [displayExpenses]);
@@ -38,7 +56,7 @@ export const Dashboard = () => {
     displayExpenses.forEach(e => {
       const key = viewBy === 'category' ? e.categoryId : e.subcategory;
       const name = viewBy === 'category' ? e.categoryName : e.subcategory;
-      const color = viewBy === 'category' ? e.categoryColor : '#6366f1'; // fallback color for sub
+      const color = viewBy === 'category' ? e.categoryColor : getStringColor(e.subcategory);
 
       if (!map.has(key)) {
         map.set(key, { name, value: 0, color });
@@ -48,6 +66,19 @@ export const Dashboard = () => {
 
     return Array.from(map.values()).sort((a, b) => b.value - a.value);
   }, [displayExpenses, viewBy]);
+
+  // Pie Chart Specific Data: Group items beyond 8 into "Outros"
+  const pieChartData = useMemo(() => {
+    if (chartData.length <= 8) return chartData;
+    
+    const top7 = chartData.slice(0, 7);
+    const othersValue = chartData.slice(7).reduce((acc, curr) => acc + curr.value, 0);
+    
+    return [
+      ...top7,
+      { name: 'Outros', value: othersValue, color: '#94a3b8' }
+    ];
+  }, [chartData]);
 
   const topCategoryName = chartData.length > 0 ? chartData[0].name : '-';
 
@@ -87,20 +118,23 @@ export const Dashboard = () => {
     <div className="flex flex-col bg-slate-50 min-h-full pb-24">
       {/* Header - Compact 56px */}
       <header className="bg-white px-4 h-14 flex items-center justify-between shadow-sm border-b border-slate-200 sticky top-0 z-30">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div 
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-inner"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-inner relative"
             style={{ backgroundColor: currentUser?.color }}
           >
             {currentUser?.name.charAt(0).toUpperCase()}
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${isOnline ? 'bg-emerald-500 animate-pulse-slow' : 'bg-rose-500'}`} />
           </div>
-          <span className="text-sm font-bold text-slate-800 truncate max-w-[100px]">{currentUser?.name}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-slate-800 truncate max-w-[100px] leading-tight">{currentUser?.name}</span>
+            {!isOnline && <span className="text-[9px] font-medium text-rose-500 leading-none">Sem conexão</span>}
+          </div>
         </div>
         
         <div className="text-sm font-bold text-slate-500 uppercase tracking-tight">
           {formattedMonth}
         </div>
-
       </header>
 
       {/* Filters & Month Selector - Single line */}
@@ -137,31 +171,35 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      <div className="flex flex-col space-y-4 p-4">
-        {/* KPI Cards - Horizontal scroll 80px */}
-        <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x -mx-4 px-4 h-20 items-center">
-          <div className="snap-center shrink-0 w-36 h-full bg-indigo-600 text-white p-3 rounded-xl shadow-sm flex flex-col justify-center">
-            <h3 className="text-indigo-100 text-[10px] font-medium uppercase tracking-wider mb-0.5">Total</h3>
-            <p className="text-base font-bold truncate">{formatCurrency(totalSpent)}</p>
+      <div className="flex flex-col space-y-6 p-4">
+        {/* KPI Cards - 2x2 Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`bg-indigo-600 text-white p-4 rounded-2xl shadow-sm flex flex-col justify-center min-h-[80px] transition-opacity ${filterType !== 'all' ? 'opacity-60' : 'opacity-100'}`}>
+            <h3 className="text-indigo-100 text-xs font-medium uppercase tracking-wider mb-1">Total</h3>
+            <p className="text-xl font-bold truncate">{formatCurrency(totalSpent)}</p>
           </div>
           
-          <button 
-            onClick={() => setFilterMyExpenses(!filterMyExpenses)}
-            className={`snap-center shrink-0 w-36 h-full p-3 rounded-xl shadow-sm border-2 flex flex-col justify-center text-left transition-all ${filterMyExpenses ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-100 text-slate-800'}`}
+          <motion.button 
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setFilterType(filterType === 'me' ? 'all' : 'me')}
+            className={`p-4 rounded-2xl shadow-sm border-2 flex flex-col justify-center text-left transition-all min-h-[80px] ${filterType === 'me' ? 'bg-indigo-600 border-indigo-600 text-white z-10' : 'bg-white border-slate-100 text-slate-800'} ${filterType !== 'all' && filterType !== 'me' ? 'opacity-60' : 'opacity-100'}`}
           >
-            <h3 className={`text-[10px] font-medium uppercase tracking-wider mb-0.5 ${filterMyExpenses ? 'text-indigo-100' : 'text-slate-400'}`}>Meu Gasto</h3>
-            <p className={`text-base font-bold truncate ${filterMyExpenses ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(mySpent)}</p>
-            {filterMyExpenses && <span className="text-[9px] text-indigo-200 font-medium mt-0.5">Filtro ativo • toque para limpar</span>}
-          </button>
+            <h3 className={`text-xs font-medium uppercase tracking-wider mb-1 ${filterType === 'me' ? 'text-indigo-100' : 'text-slate-400'}`}>Meu Gasto</h3>
+            <p className={`text-xl font-bold truncate ${filterType === 'me' ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(mySpent)}</p>
+          </motion.button>
 
-          <div className="snap-center shrink-0 w-36 h-full bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
-            <h3 className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">Outros</h3>
-            <p className="text-base font-bold text-slate-800 truncate">{formatCurrency(othersSpent)}</p>
-          </div>
+          <motion.button 
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setFilterType(filterType === 'others' ? 'all' : 'others')}
+            className={`p-4 rounded-2xl shadow-sm border-2 flex flex-col justify-center text-left transition-all min-h-[80px] ${filterType === 'others' ? 'bg-indigo-600 border-indigo-600 text-white z-10' : 'bg-white border-slate-100 text-slate-800'} ${filterType !== 'all' && filterType !== 'others' ? 'opacity-60' : 'opacity-100'}`}
+          >
+            <h3 className={`text-xs font-medium uppercase tracking-wider mb-1 ${filterType === 'others' ? 'text-indigo-100' : 'text-slate-400'}`}>Outros</h3>
+            <p className={`text-xl font-bold truncate ${filterType === 'others' ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(othersSpent)}</p>
+          </motion.button>
 
-          <div className="snap-center shrink-0 w-36 h-full bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
-            <h3 className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">Líder</h3>
-            <p className="text-base font-bold text-slate-800 truncate">{topCategoryName}</p>
+          <div className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center min-h-[80px] transition-opacity ${filterType !== 'all' ? 'opacity-60' : 'opacity-100'}`}>
+            <h3 className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Líder</h3>
+            <p className="text-xl font-bold text-slate-800 truncate">{topCategoryName}</p>
           </div>
         </div>
 
@@ -170,14 +208,14 @@ export const Dashboard = () => {
           <>
             {/* Bar Chart - Priority, max 250px */}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-          <h3 className="text-xs font-bold text-slate-800 mb-4 font-sans">
+          <h3 className="text-sm font-bold text-slate-800 mb-6 font-sans">
             Gastos por {viewBy === 'category' ? 'Categoria' : 'Subcategoria'}
           </h3>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 80, left: 0, bottom: 0 }}>
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={80} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
+                <YAxis dataKey="name" type="category" width={90} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -209,14 +247,14 @@ export const Dashboard = () => {
 
         {/* Donut Chart - Compact */}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-           <h3 className="text-xs font-bold text-slate-800 mb-2 font-sans">
+           <h3 className="text-sm font-bold text-slate-800 mb-4 font-sans">
             Composição ({viewBy === 'category' ? 'Categoria' : 'Subcategoria'})
           </h3>
           <div className="h-48 flex flex-col items-center justify-center relative">
              <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={chartData.slice(0, 6)}
+                  data={pieChartData}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -225,7 +263,7 @@ export const Dashboard = () => {
                   dataKey="value"
                   stroke="none"
                 >
-                  {chartData.slice(0, 6).map((entry, index) => (
+                  {pieChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -239,12 +277,12 @@ export const Dashboard = () => {
           </div>
             
           {/* Custom Legend - Below chart */}
-          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
-            {chartData.slice(0, 6).map((entry, i) => (
+           <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3">
+            {pieChartData.map((entry, i) => (
                <div key={i} className="flex items-center gap-2">
-                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                 <span className="text-[11px] text-slate-600 truncate">{entry.name}</span>
-                 <span className="text-[11px] font-bold text-slate-800 ml-auto">{Math.round((entry.value / totalSpent) * 100)}%</span>
+                 <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                 <span className="text-sm text-slate-600 truncate">{entry.name}</span>
+                 <span className="text-sm font-bold text-slate-800 ml-auto">{Math.round((entry.value / totalSpent) * 100)}%</span>
                </div>
             ))}
           </div>

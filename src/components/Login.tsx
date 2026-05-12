@@ -128,7 +128,7 @@ export const Login = () => {
                       className="w-full px-4 py-4 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-center text-lg tracking-[0.5em]"
                     />
                     {error && (
-                      <p className="text-xs text-red-500 text-center font-medium">{error}</p>
+                      <p className="text-sm text-red-500 text-center font-medium">{error}</p>
                     )}
                   </div>
 

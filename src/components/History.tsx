@@ -9,7 +9,7 @@ import { ptBR } from 'date-fns/locale';
 import { Expense } from '../types';
 
 export const History = () => {
-  const { expenses, users, deleteExpense } = useAppContext();
+  const { expenses, users, deleteExpense, isOnline, currentUser } = useAppContext();
   const [filterUser, setFilterUser] = useState<string | null>(null);
 
   const filteredExpenses = filterUser 
@@ -27,8 +27,14 @@ export const History = () => {
 
   return (
     <div className="flex flex-col min-h-full bg-slate-50 pb-8">
-      <div className="bg-white px-6 pt-12 pb-4 shadow-sm border-b border-slate-200 sticky top-0 z-10">
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">Histórico</h2>
+      <div className="bg-white px-4 pt-12 pb-4 shadow-sm border-b border-slate-200 sticky top-0 z-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-slate-800">Histórico</h2>
+          <div className="flex items-center gap-2">
+            {!isOnline && <span className="text-[10px] font-medium text-rose-500">Offline</span>}
+            <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-slow' : 'bg-rose-500'}`} />
+          </div>
+        </div>
         
         {/* User Filter */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
@@ -51,7 +57,7 @@ export const History = () => {
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-6">
         {Object.entries(grouped).length === 0 ? (
           <div className="text-center py-12 text-slate-400">
              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -96,8 +102,8 @@ export const History = () => {
                         <div className="text-right flex items-center gap-3 shrink-0">
                           <div>
                             <p className="font-bold text-slate-800">{formatCurrency(e.amount)}</p>
-                            <p className="text-[10px] text-slate-400 flex items-center justify-end gap-1 mt-0.5">
-                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: payer?.color }} />
+                            <p className="text-xs text-slate-400 flex items-center justify-end gap-1 mt-0.5 font-medium">
+                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payer?.color }} />
                               {payer?.name}
                             </p>
                           </div>

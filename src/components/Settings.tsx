@@ -4,7 +4,7 @@ import { Trash2, Plus, LogOut, Tags, Users } from 'lucide-react';
 import { useAppContext } from '../lib/context';
 
 export const Settings = () => {
-  const { categories, users, addCategory, deleteCategory, addUser, deleteUser, logout } = useAppContext();
+  const { categories, users, addCategory, deleteCategory, addUser, deleteUser, logout, isOnline } = useAppContext();
 
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [newCatName, setNewCatName] = useState('');
@@ -33,8 +33,14 @@ export const Settings = () => {
 
   return (
     <div className="flex flex-col min-h-full bg-slate-50 pb-8">
-      <div className="bg-white px-6 pt-12 pb-4 shadow-sm border-b border-slate-200 sticky top-0 z-10 flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-800">Ajustes</h2>
+      <div className="bg-white px-4 pt-12 pb-4 shadow-sm border-b border-slate-200 sticky top-0 z-10 flex justify-between items-center">
+        <div className="flex flex-col">
+          <h2 className="text-2xl font-bold text-slate-800">Ajustes</h2>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-slow' : 'bg-rose-500'}`} />
+            <span className={`text-[10px] font-medium ${isOnline ? 'text-slate-400' : 'text-rose-500'}`}>{isOnline ? 'Sincronizado' : 'Sem conexão'}</span>
+          </div>
+        </div>
         <button 
           onClick={logout} 
           className="flex items-center gap-2 px-4 min-h-[44px] bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
@@ -44,7 +50,7 @@ export const Settings = () => {
         </button>
       </div>
 
-      <div className="p-6 space-y-8">
+      <div className="p-4 space-y-8">
         {/* Categories */}
         <section>
           <div className="flex justify-between items-center mb-4">
@@ -70,8 +76,8 @@ export const Settings = () => {
                     <span className="font-medium text-slate-700">{c.name}</span>
                   </div>
                   <button 
-                    onClick={() => { if(window.confirm('Excluir categoria? Gastos antigos não serão apagados.')) deleteCategory(c.id) }} 
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full"
+                    onClick={() => { if(window.confirm('Tem certeza que deseja excluir esta categoria? Os gastos que você já cadastrou com ela continuarão salvos no seu histórico.')) deleteCategory(c.id) }} 
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full active:scale-95 transition-transform"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -106,8 +112,8 @@ export const Settings = () => {
                     <span className="font-medium text-slate-700">{u.name}</span>
                   </div>
                   <button 
-                    onClick={() => { if(window.confirm('Excluir usuário? Ele não poderá mais fazer login.')) deleteUser(u.id) }} 
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full"
+                    onClick={() => { if(window.confirm('Deseja remover este usuário? Ele perderá o acesso ao aplicativo imediatamente.')) deleteUser(u.id) }} 
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-500 bg-rose-50 rounded-full active:scale-95 transition-transform"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -132,13 +138,13 @@ export const Settings = () => {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500 uppercase tracking-widest block mb-2">Nome</label>
-                  <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600" />
+                  <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} autoComplete="off" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500 uppercase tracking-widest block mb-2">Cor</label>
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map(c => (
-                       <button key={c} onClick={() => setNewCatColor(c)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${newCatColor === c ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}`} style={{ backgroundColor: c }} />
+                       <button key={c} onClick={() => setNewCatColor(c)} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${newCatColor === c ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}`} style={{ backgroundColor: c }} />
                     ))}
                   </div>
                 </div>
@@ -163,13 +169,13 @@ export const Settings = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-xs font-medium text-slate-500 uppercase tracking-widest block mb-2">Nome Autorizado</label>
-                  <input type="text" value={newUserName} onChange={e => setNewUserName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600" />
+                  <input type="text" value={newUserName} onChange={e => setNewUserName(e.target.value)} autoComplete="off" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500 uppercase tracking-widest block mb-2">Cor de Perfil</label>
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map(c => (
-                       <button key={c} onClick={() => setNewUserColor(c)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${newUserColor === c ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}`} style={{ backgroundColor: c }} />
+                       <button key={c} onClick={() => setNewUserColor(c)} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${newUserColor === c ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}`} style={{ backgroundColor: c }} />
                     ))}
                   </div>
                 </div>
