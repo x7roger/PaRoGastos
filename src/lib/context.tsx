@@ -202,8 +202,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
- 
- 
+  const saveSubcategory = async (nome: string, categoria: string) => {
+    try {
+      await addDoc(collection(db, "subcategorias"), { 
+        nome, 
+        categoria,
+        criadoEm: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error adding subcategory to Firestore:", error);
+      alert("Erro ao salvar subcategoria.");
+    }
+  };
+
   const addUser = (user: Omit<User, 'id'>) => {
     const newUser: User = {
       ...user,
