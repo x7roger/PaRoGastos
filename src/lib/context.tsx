@@ -51,6 +51,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   const [loading, setLoading] = useState(true);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [syncKey, setSyncKey] = useState(0);
+
+  // iOS/Safari PWA re-sync: re-attach Firestore listeners when app returns to foreground
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setSyncKey(k => k + 1);
+      }
+    };
+    const handleFocus = () => {
+      setSyncKey(k => k + 1);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -145,28 +166,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // iOS/Safari PWA re-sync: re-attach Firestore listeners when app returns to foreground
-  const [syncKey, setSyncKey] = useState(0);
-
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        setSyncKey(k => k + 1);
-      }
-    };
-    const handleFocus = () => {
-      setSyncKey(k => k + 1);
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
