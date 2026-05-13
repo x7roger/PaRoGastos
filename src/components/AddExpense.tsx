@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useRef, ChangeEvent } from 'react';
-import { motion } from 'motion/react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { useAppContext } from '../lib/context';
 
@@ -89,13 +88,7 @@ export const AddExpense = () => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: '100%' }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: '100%' }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="bg-slate-50 h-full w-full flex flex-col z-50 fixed inset-0 overflow-hidden"
-    >
+    <div className="bg-slate-50 h-full w-full flex flex-col z-50 fixed inset-0 overflow-hidden">
       <div className="bg-white px-6 py-4 flex justify-between items-center shadow-sm z-10 shrink-0">
         <button onClick={() => setIsAddExpenseOpen(false)} className="text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2">
           <X size={24} />
@@ -104,7 +97,7 @@ export const AddExpense = () => {
         <div className="w-10"></div> {/* Spacer for center alignment */}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-10 pb-32">
+       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-10 pb-[300px]">
         {/* 1. VALOR */}
         <div className="text-center">
           <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">Qual foi o valor?</p>
@@ -115,6 +108,7 @@ export const AddExpense = () => {
                inputMode="numeric"
                value={amountDisplay}
                onChange={handleAmountChange}
+               onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                className="w-full text-5xl font-bold font-sans text-center text-slate-800 bg-transparent border-none focus:ring-0 outline-none p-0 z-10 absolute inset-0 cursor-text opacity-0"
             />
             {/* Visual display overlaid behind transparent input to look nice */}
@@ -196,10 +190,11 @@ export const AddExpense = () => {
                <div>
                   <p className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-2">Data</p>
                   <input
-                    type="date"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 h-12 text-sm text-slate-800 font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                     type="date"
+                     value={date}
+                     onChange={e => setDate(e.target.value)}
+                     onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 h-12 text-sm text-slate-800 font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                   />
                </div>
                <div>
@@ -232,6 +227,6 @@ export const AddExpense = () => {
           {isSaving ? 'Salvando...' : 'Salvar Gasto'}
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 };

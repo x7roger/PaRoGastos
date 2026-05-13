@@ -94,7 +94,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncKey]);
 
   // Real-time listener for subcategories from Firestore
   useEffect(() => {
@@ -110,7 +111,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncKey]);
 
   // Real-time listener for categories from Firestore
   useEffect(() => {
@@ -129,7 +131,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncKey]);
 
   // Connection status listener
   useEffect(() => {
@@ -142,6 +145,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // iOS/Safari PWA re-sync: re-attach Firestore listeners when app returns to foreground
+  const [syncKey, setSyncKey] = useState(0);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setSyncKey(k => k + 1);
+      }
+    };
+    const handleFocus = () => {
+      setSyncKey(k => k + 1);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
